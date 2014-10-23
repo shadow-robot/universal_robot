@@ -12,6 +12,7 @@
   <arg name="robot_ip"/>
   <arg name="limited" default="false"/>
   <arg name="prefix" default="ra_"/>
+  <arg name="type" default="joint"/>
   
   <!-- robot model -->
   <include file="$(find ur_description)/launch/ur10_upload.launch">
@@ -22,6 +23,7 @@
   <include file="$(find ur_bringup)/launch/ur_common.launch">
     <arg name="robot_ip" value="$(arg robot_ip)"/>
     <arg name="prefix" value="$(arg prefix)"/>
+    <arg name="type" value="$(arg type)"/>
   </include>
   
 </launch>

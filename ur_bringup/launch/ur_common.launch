@@ -13,6 +13,7 @@
   <!-- robot_ip: IP-address of the robot's socket-messaging server -->
   <arg name="robot_ip"/>
   <arg name="prefix"/>
+  <arg name="type"/>
   
   <!-- copy the specified IP address to be consistant with ROS-Industrial spec. NOTE: The ip address is actually passed to the
     driver on the command line -->
@@ -21,7 +22,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
   
   <!-- driver -->
-  <node name="$(arg prefix)ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg prefix)" output="screen"
+  <node name="$(arg prefix)ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg prefix) $(arg type)" output="screen"
     />
   
   <!-- TF Buffer Server -->

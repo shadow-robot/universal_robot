@@ -7,8 +7,10 @@ def driverProg():
   MSG_SERVOJ = 7
   MSG_SET_PAYLOAD = 8
   MSG_SET_TEACH_MODE = 15
+  MSG_SERVOC = 16
   MULT_payload = 1000.0
   MULT_jointstate = 10000.0
+  MULT_cartesian = 10000.0
   MULT_time = 1000000.0
   
   def send_out(msg):
@@ -20,17 +22,32 @@ def driverProg():
   end
 
   SERVO_IDLE = 0
-  SERVO_RUNNING = 1
+  SERVOJ_RUNNING = 1
+  SERVOC_RUNNING = 2
   cmd_servo_state = SERVO_IDLE
   cmd_servo_id = 0  # 0 = idle, -1 = stop
   cmd_servo_q = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   cmd_servo_dt = 0.0
-  def set_servo_setpoint(id, q, dt):
+  cmd_servo_p = p[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  cmd_servo_a = 0.0
+  cmd_servo_v = 0.0
+  cmd_servo_r = 0.0
+  def set_servoj_setpoint(id, q, dt):
     enter_critical
-    cmd_servo_state = SERVO_RUNNING
+    cmd_servo_state = SERVOJ_RUNNING
     cmd_servo_id = id
     cmd_servo_q = q
     cmd_servo_dt = dt
+    exit_critical
+  end
+  def set_servoc_setpoint(id, pose, a, v, r):
+    enter_critical
+    cmd_servo_state = SERVOC_RUNNING
+    cmd_servo_id = id
+    cmd_servo_p = pose
+    cmd_servo_a = a
+    cmd_servo_v = v
+    cmd_servo_r = r
     exit_critical
   end
   thread servoThread():
@@ -41,8 +58,12 @@ def driverProg():
       q = cmd_servo_q
       dt = cmd_servo_dt
       id = cmd_servo_id
+      pose = cmd_servo_p
+      a = cmd_servo_a
+      v = cmd_servo_v
+      r = cmd_servo_r
       do_brake = False
-      if (state == SERVO_RUNNING) and (cmd_servo_state == SERVO_IDLE):
+      if ((state == SERVOJ_RUNNING) or (state == SERVOC_RUNNING)) and (cmd_servo_state == SERVO_IDLE):
         # No command pending
         do_brake = True
       end
@@ -54,8 +75,10 @@ def driverProg():
       if do_brake:
         send_out("Braking")
         sync()
-      elif state == SERVO_RUNNING:
+      elif state == SERVOJ_RUNNING:
         servoj(q, 0, 0, dt)
+      elif state == SERVOC_RUNNING:
+        servoc(pose, a, v, r)
       else:
         sync()
       end
@@ -93,7 +116,7 @@ def driverProg():
         t = params_mult[8] / MULT_time
         
         # Servos
-        set_servo_setpoint(waypoint_id, q, t)
+        set_servoj_setpoint(waypoint_id, q, t)
       elif mtype == MSG_SET_PAYLOAD:
         params = socket_read_binary_integer(1)
         if params[0] == 0:
@@ -119,6 +142,27 @@ def driverProg():
             end_teach_mode()
           end
         end
+      elif mtype == MSG_SERVOC:
+        # Reads the parameters
+        params_mult = socket_read_binary_integer(1+6+1+1+1)
+        if params_mult[0] == 0:
+          send_out("Received no parameters for servoj message")
+        end
+        
+        # Unpacks the parameters
+        waypoint_id = params_mult[1]
+        pose = p[params_mult[2] / MULT_cartesian,
+                 params_mult[3] / MULT_cartesian,
+                 params_mult[4] / MULT_cartesian,
+                 params_mult[5] / MULT_cartesian,
+                 params_mult[6] / MULT_cartesian,
+                 params_mult[7] / MULT_cartesian]
+        a = params_mult[8] / MULT_cartesian
+        v = params_mult[9] / MULT_cartesian
+        r = params_mult[10] / MULT_cartesian
+        
+        # Servos
+        set_servoc_setpoint(waypoint_id, pose, a, v, r)
       else:
         send_out("Received unknown message type")
       end
