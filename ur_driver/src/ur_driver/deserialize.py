@@ -1,6 +1,6 @@
 import struct
 
-class PackageType(object):
+class RobotStatePackageType(object):
     ROBOT_MODE_DATA = 0
     JOINT_DATA = 1
     TOOL_DATA = 2
@@ -11,19 +11,42 @@ class PackageType(object):
     FORCE_MODE_DATA = 7
     ADDITIONAL_INFO = 8
     CALIBRATION_DATA = 9
+    
+class RobotMessagePackageType(object):
+    ROBOT_MESSAGE_TEXT = 0
+    ROBOT_MESSAGE_PROGRAM_LABEL = 1
+    ROBOT_MESSAGE_VERSION = 3
+    ROBOT_MESSAGE_SAFETY_MODE = 5
+    ROBOT_MESSAGE_ERROR_CODE = 6
+    ROBOT_MESSAGE_KEY = 7
+    ROBOT_MESSAGE_REQUEST_VALUE = 9
+    ROBOT_MESSAGE_RUNTIME_EXCEPTION = 10
 
-class RobotMode(object):
-    RUNNING = 0
-    FREEDRIVE = 1
-    READY = 2
-    INITIALIZING = 3
-    SECURITY_STOPPED = 4
-    EMERGENCY_STOPPED = 5
-    FATAL_ERROR = 6
-    NO_POWER = 7
-    NOT_CONNECTED = 8
-    SHUTDOWN = 9
-    SAFEGUARD_STOP = 10
+#valid until revision11
+class RobotMode_V18(object):
+    ROBOT_RUNNING_MODE = 0
+    ROBOT_FREEDRIVE_MODE = 1
+    ROBOT_READY_MODE = 2
+    ROBOT_INITIALIZING_MODE = 3
+    ROBOT_SECURITY_STOPPED_MODE = 4
+    ROBOT_EMERGENCY_STOPPED_MODE = 5
+    ROBOT_FATAL_ERROR_MODE = 6
+    ROBOT_NO_POWER_MODE = 7
+    ROBOT_NOT_CONNECTED_MODE = 8
+    ROBOT_SHUTDOWN_MODE = 9
+    ROBOT_SAFEGUARD_STOP_MODE = 10
+
+#valid since revision12
+class RobotMode_V30(object):
+    ROBOT_MODE_DISCONNECTED = 0
+    ROBOT_MODE_CONFIRM_SAFETY = 1
+    ROBOT_MODE_BOOTING = 2
+    ROBOT_MODE_POWER_OFF = 3
+    ROBOT_MODE_POWER_ON = 4
+    ROBOT_MODE_IDLE = 5
+    ROBOT_MODE_BACKDRIVE = 6
+    ROBOT_MODE_RUNNING = 7
+    ROBOT_MODE_UPDATING_FIRMWARE = 8
 
 class JointMode(object):
     PART_D_CALIBRATION = 237
@@ -314,15 +337,6 @@ class RobotState(object):
 
     @staticmethod
     def unpack(buf):
-        length, mtype = struct.unpack_from("!IB", buf)
-        if length != len(buf):
-            raise Exception("Could not unpack packet: length field is incorrect")
-        if mtype != 16:
-            if mtype == 20:
-                print "Likely a syntax error:"
-                print buf[:2048]
-            raise Exception("Fatal error when unpacking RobotState packet")
-
         rs = RobotState()
         offset = 5
         while offset < len(buf):
@@ -331,29 +345,140 @@ class RobotState(object):
             package_buf = buffer(buf, offset, length)
             offset += length
 
-            if ptype == PackageType.ROBOT_MODE_DATA:
+            if ptype == RobotStatePackageType.ROBOT_MODE_DATA:
                 rs.robot_mode_data = RobotModeData.unpack(package_buf)
-            elif ptype == PackageType.JOINT_DATA:
+            elif ptype == RobotStatePackageType.JOINT_DATA:
                 rs.joint_data = JointData.unpack(package_buf)
-            elif ptype == PackageType.TOOL_DATA:
+            elif ptype == RobotStatePackageType.TOOL_DATA:
                 rs.tool_data = ToolData.unpack(package_buf)
-            elif ptype == PackageType.MASTERBOARD_DATA:
+            elif ptype == RobotStatePackageType.MASTERBOARD_DATA:
                 rs.masterboard_data = MasterboardData.unpack(package_buf)
-            elif ptype == PackageType.CARTESIAN_INFO:
+            elif ptype == RobotStatePackageType.CARTESIAN_INFO:
                 rs.cartesian_info = CartesianInfo.unpack(package_buf)
-            elif ptype == PackageType.KINEMATICS_INFO:
+            elif ptype == RobotStatePackageType.KINEMATICS_INFO:
                 rs.kinematics_info = KinematicsInfo.unpack(package_buf)
-            elif ptype == PackageType.CONFIGURATION_DATA:
+            elif ptype == RobotStatePackageType.CONFIGURATION_DATA:
                 rs.configuration_data = ConfigurationData.unpack(package_buf)
-            elif ptype == PackageType.FORCE_MODE_DATA:
+            elif ptype == RobotStatePackageType.FORCE_MODE_DATA:
                 rs.force_mode_data = ForceModeData.unpack(package_buf)
-            elif ptype == PackageType.ADDITIONAL_INFO:
+            elif ptype == RobotStatePackageType.ADDITIONAL_INFO:
                 rs.additional_info = AdditionalInfo.unpack(package_buf)
-            elif ptype == PackageType.CALIBRATION_DATA:
+            elif ptype == RobotStatePackageType.CALIBRATION_DATA:
                 pass # internal data, should be skipped
             else:
                 rs.unknown_ptypes.append(ptype)
         return rs
+
+
+
+class RobotMessageVersion(object):
+    __slots__ = ['messageSize', 'messageType',
+                 'timestamp', 'source', 'robotMessageType',
+                 'projectNameSize', 'projectName',
+                 'majorVersion', 'minorVersion',
+                 'svnRevision', 'buildDate']
+    @staticmethod
+    def unpack(buf):
+        rmv = RobotMessageVersion()
+        offset = 0
+        
+        # messageSize: 1x int (1x 4byte)
+        rmv.messageSize = struct.unpack_from("!I",buf, offset)[0]
+        offset+=4
+        
+        # messageType: 1x unsigned char (1x 1byte)
+        rmv.messageType = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # timestamp: 1x uint64_t (1x 8byte)
+        rmv.timestamp = struct.unpack_from("!Q",buf, offset)[0]
+        offset+=8
+        
+        # source: 1x char (1x 1byte)
+        rmv.source = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # robotMessageType: 1x char (1x 1byte)
+        rmv.robotMessageType = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # projectNameSize: 1x char (1x 1byte)
+        rmv.projectNameSize = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # projectName: char array (projectNameSize x 1byte)
+        #rmv.projectName = struct.unpack_from("!%iB" % int(rmv.projectNameSize), buf, offset)[0]
+        #print rmv.projectName
+        offset+=rmv.projectNameSize
+        
+        # majorVersion: 1x unsigned char (1x 1byte)
+        rmv.majorVersion = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # minorVersion: 1x unsigned char (1x 1byte)
+        rmv.minorVersion = struct.unpack_from("!B",buf, offset)[0]
+        offset+=1
+        
+        # svnRevision: 1x int (1x 4byte)
+        rmv.minorVersion = struct.unpack_from("!I",buf, offset)[0]
+        offset+=4
+        
+        # buildDate: char array (projectNameSize x 1byte)
+        #rmv.buildDate = struct.unpack_from("!%iB" % int(rmv.messageSize - offset), buf, offset)[0]
+        
+        return rmv
+
+
+class RobotMessage(object):
+    __slots__ = ['version_message', 'unknown_ptypes']
+
+    def __init__(self):
+        self.unknown_ptypes = []
+    
+    @staticmethod
+    def unpack(buf):
+        rm = RobotMessage()
+        offset = 0
+        
+        while offset < len(buf):
+            messageSize, messageType, timestamp, source, robotMessageType = struct.unpack_from("!iBQBB", buf, offset)
+            assert offset + messageSize <= len(buf)
+            package_buf = buffer(buf, offset, messageSize)
+            offset += messageSize
+
+            if robotMessageType == RobotMessagePackageType.ROBOT_MESSAGE_VERSION:
+                rm.version_message = RobotMessageVersion.unpack(package_buf)
+            else:
+                print("UNKNOWN_MESSAGE")
+                print robotMessageType
+                rm.unknown_ptypes.append(robotMessageType)
+        return rm
+
+
+class SecondaryClientPacket(object):
+    __slots__ = ['robot_state', 'robot_message']
+
+    def __init__(self):
+        self.robot_state = None
+        self.robot_message = None
+        
+    @staticmethod
+    def unpack(buf):
+        length, mtype = struct.unpack_from("!IB", buf)
+        if length != len(buf):
+            raise Exception("Could not unpack packet: length field is incorrect")
+        
+        scp = SecondaryClientPacket()
+        if mtype == 16:
+            scp.robot_state = RobotState.unpack(buf)
+        elif mtype == 20:
+            scp.robot_message = RobotMessage.unpack(buf)
+        else:
+            print "Unknown MessageType"
+            raise Exception("Fatal error when unpacking SecondaryClientPacket")
+
+        return scp
+
 
 def pstate(o, indent=''):
     for s in o.__slots__:
