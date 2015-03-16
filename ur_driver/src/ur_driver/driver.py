@@ -19,7 +19,7 @@ from geometry_msgs.msg import WrenchStamped
 from dynamic_reconfigure.server import Server
 from ur_driver.cfg import URDriverConfig
 
-from ur_driver.deserialize import RobotState, RobotMode
+from ur_driver.deserialize import SecondaryClientPacket, RobotState, RobotMessage, RobotMode_V18, RobotMode_V30
 from ur_driver.deserializeRT import RobotStateRT
 
 from ur_msgs.srv import SetPayload, SetIO
@@ -134,17 +134,22 @@ class URConnection(object):
     def __init__(self, hostname, port, program):
         self.__thread = None
         self.__sock = None
+        self.robot_version = -1
         self.robot_state = self.DISCONNECTED
+        print("DebugRobotState %d" % self.robot_state )
         self.hostname = hostname
         self.port = port
         self.program = program
         self.last_state = None
 
     def connect(self):
+        print("Connect")
         if self.__sock:
+            print("Disconnect")
             self.disconnect()
         self.__buf = ""
         self.robot_state = self.CONNECTED
+        print("DebugRobotState %d" % self.robot_state )
         self.__sock = socket.create_connection((self.hostname, self.port))
         self.__keep_running = True
         self.__thread = threading.Thread(name="URConnection", target=self.__run)
@@ -152,18 +157,22 @@ class URConnection(object):
         self.__thread.start()
 
     def send_program(self):
+        print("Send_Programm")
         global prevent_programming
         if prevent_programming:
             rospy.loginfo("Programming is currently prevented")
             return
+        print("RobotState: %d" % self.robot_state)
         assert self.robot_state in [self.READY_TO_PROGRAM, self.EXECUTING]
         rospy.loginfo("Programming the robot at %s" % self.hostname)
         self.__sock.sendall(self.program)
         self.robot_state = self.EXECUTING
+        print("DebugRobotState %d" % self.robot_state )
 
     def send_reset_program(self):
         self.__sock.sendall(RESET_PROGRAM)
         self.robot_state = self.READY_TO_PROGRAM
+        print("DebugRobotState %d" % self.robot_state )
         
     def disconnect(self):
         if self.__thread:
@@ -175,20 +184,37 @@ class URConnection(object):
             self.__sock = None
         self.last_state = None
         self.robot_state = self.DISCONNECTED
+        print("DebugRobotState %d" % self.robot_state )
 
     def ready_to_program(self):
+        rospy.loginfo("RobotState %d" % self.robot_state)
         return self.robot_state in [self.READY_TO_PROGRAM, self.EXECUTING]
 
     def __trigger_disconnected(self):
         log("Robot disconnected")
         self.robot_state = self.DISCONNECTED
+        print("DebugRobotState %d" % self.robot_state )
     def __trigger_ready_to_program(self):
         rospy.loginfo("Robot ready to program")
     def __trigger_halted(self):
         log("Halted")
 
     def __on_packet(self, buf):
-        state = RobotState.unpack(buf)
+        print("OnPacket")
+        scp = SecondaryClientPacket.unpack(buf)
+        
+        if scp.robot_message:
+            print("RobotMessage received")
+            print scp.robot_message.version_message.majorVersion
+            self.robot_version = scp.robot_message.version_message.majorVersion
+            self.robot_state = self.CONNECTED
+            print("DebugRobotState %d" % self.robot_state )
+    
+        if not scp.robot_state:
+            print("RobotState is None")
+            return
+        
+        state = scp.robot_state
         self.last_state = state
         #import deserialize; deserialize.pstate(self.last_state)
 
@@ -234,18 +260,26 @@ class URConnection(object):
         
 
         # Updates the state machine that determines whether we can program the robot.
-        can_execute = (state.robot_mode_data.robot_mode in [RobotMode.READY, RobotMode.RUNNING])
+        rospy.loginfo("RobotMode %d" % state.robot_mode_data.robot_mode)
+        if self.robot_version == 3:
+            can_execute = (state.robot_mode_data.robot_mode in [RobotMode_V30.ROBOT_MODE_RUNNING]) #RobotMode_V30.ROBOT_MODE_IDLE?
+        else: # using V18 as default
+            can_execute = (state.robot_mode_data.robot_mode in [RobotMode_V18.ROBOT_READY_MODE, RobotMode_V18.ROBOT_RUNNING_MODE])
+        
         if self.robot_state == self.CONNECTED:
             if can_execute:
                 self.__trigger_ready_to_program()
                 self.robot_state = self.READY_TO_PROGRAM
+                print("DebugRobotState %d" % self.robot_state )
         elif self.robot_state == self.READY_TO_PROGRAM:
             if not can_execute:
                 self.robot_state = self.CONNECTED
+                print("DebugRobotState %d" % self.robot_state )
         elif self.robot_state == self.EXECUTING:
             if not can_execute:
                 self.__trigger_halted()
                 self.robot_state = self.CONNECTED
+                print("DebugRobotState %d" % self.robot_state )
 
         # Report on any unknown packet types that were received
         if len(state.unknown_ptypes) > 0:
@@ -281,10 +315,12 @@ class URConnection(object):
                             break
 
                 else:
+                    print("No more")
                     self.__trigger_disconnected()
                     self.__keep_running = False
                     
             else:
+                print("No r")
                 self.__trigger_disconnected()
                 self.__keep_running = False
 
@@ -862,6 +898,7 @@ def get_my_ip(robot_ip, port):
     return tmp
 
 def handle_set_io(req):
+    print("Handle_SET_IO")
     r = getConnectedRobot(wait=False)
     if r:
         if req.fun == FUN_SET_DIGITAL_OUT:
@@ -967,6 +1004,7 @@ def main():
         while not rospy.is_shutdown():
             # Checks for disconnect
             if getConnectedRobot(wait=False):
+                print("RobotConnected!")
                 time.sleep(0.2)
                 #prevent_programming = rospy.get_param("prevent_programming", False)
                 if prevent_programming:
@@ -974,8 +1012,18 @@ def main():
                     connection.send_reset_program()
             else:
                 print "Disconnected.  Reconnecting"
+                if service_provider:
+                    service_provider.set_robot(None)
                 if action_server:
                     action_server.set_robot(None)
+                    
+                #rospy.loginfo("Connecting to the robot")
+                #while not getConnectedRobot(wait=True, timeout=1.0):
+                    #print "Waiting to connect"
+                    #connection.connect()
+                    #connection.send_reset_program()
+                    
+                    ##connectionRT.connect()
 
                 rospy.loginfo("Programming the robot")
                 while True:
@@ -983,12 +1031,16 @@ def main():
                     while not connection.ready_to_program():
                         print "Waiting to program"
                         time.sleep(1.0)
+                    print "Ready to program"
+                    
                     #prevent_programming = rospy.get_param("prevent_programming", False)
                     connection.send_program()
-
-                    r = getConnectedRobot(wait=True, timeout=1.0)
+                    print("Sent Program")
+                    
+                    r = getConnectedRobot(wait=True, timeout=5.0)
                     if r:
                         break
+                    print "Robot NOT connected"
                 rospy.loginfo("Robot connected")
 
                 #provider for service calls
