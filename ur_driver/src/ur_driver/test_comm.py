@@ -11,7 +11,7 @@ import SocketServer
 import rospy
 
 from sensor_msgs.msg import JointState
-from ur_driver.deserialize import RobotState
+from ur_driver.deserialize import SecondaryClientPacket, RobotState, RobotMessage
 from ur_msgs.msg import *
 
 # renaming classes
@@ -28,7 +28,18 @@ joint_offsets = {}
 
 
 def __on_packet(buf):
-    state = RobotState.unpack(buf)
+    scp = SecondaryClientPacket.unpack(buf)
+    
+    if(scp.robot_message == None):
+        print("RobotMessage is None")
+        #but this is ok as it is only sent once as first packet
+    
+    if(scp.robot_state == None):
+        print("RobotState is None")
+        return
+    
+    
+    state = scp.robot_state
     
     mb_msg = MasterboardDataMsg()
     mb_msg.digital_input_bits = state.masterboard_data.digital_input_bits
@@ -45,10 +56,9 @@ def __on_packet(buf):
     mb_msg.robot_voltage_48V = state.masterboard_data.robot_voltage_48V
     mb_msg.robot_current = state.masterboard_data.robot_current
     mb_msg.master_io_current = state.masterboard_data.master_io_current
-    mb_msg.master_safety_state = state.masterboard_data.master_safety_state
-    mb_msg.master_onoff_state = state.masterboard_data.master_onoff_state
+    #mb_msg.master_safety_state = state.masterboard_data.master_safety_state    #not available in V30
+    #mb_msg.master_onoff_state = state.masterboard_data.master_onoff_state      #not available in V30
     pub_masterboard_state.publish(mb_msg)
-    
     
     # Use information from the robot state packet to publish IOStates        
     msg = IOStates()
@@ -92,7 +102,7 @@ def main():
     pub_io_states = rospy.Publisher('io_states', IOStates, queue_size=1)
     
     
-    robot_hostname = '192.168.0.42'
+    robot_hostname = '192.168.110.129'
     port = 30002
     
     test_socket = socket.create_connection((robot_hostname, port))

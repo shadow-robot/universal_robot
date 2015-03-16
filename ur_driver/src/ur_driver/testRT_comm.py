@@ -35,8 +35,8 @@ def __on_packet(buf):
     msg.i_actual = stateRT.i_actual
     msg.tool_acc_values = stateRT.tool_acc_values
     msg.tcp_force = stateRT.tcp_force
-    msg.tool_vector = stateRT.tool_vector
-    msg.tcp_speed = stateRT.tcp_speed
+    #msg.tool_vector = stateRT.tool_vector  #not available in V30
+    #msg.tcp_speed = stateRT.tcp_speed      #not available in V30
     msg.digital_input_bits = stateRT.digital_input_bits
     msg.motor_temperatures = stateRT.motor_temperatures
     msg.controller_timer = stateRT.controller_timer
@@ -70,7 +70,7 @@ def main():
     
     
     
-    robot_hostname = '192.168.0.42'
+    robot_hostname = '192.168.110.130'
     rt_port = 30003
     
     rt_socket = socket.create_connection((robot_hostname, rt_port))
