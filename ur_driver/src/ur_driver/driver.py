@@ -200,7 +200,7 @@ class URConnection(object):
         log("Halted")
 
     def __on_packet(self, buf):
-        print("OnPacket")
+        #print("OnPacket")
         scp = SecondaryClientPacket.unpack(buf)
         
         if scp.robot_message:
@@ -209,6 +209,7 @@ class URConnection(object):
             self.robot_version = scp.robot_message.version_message.majorVersion
             self.robot_state = self.CONNECTED
             print("DebugRobotState %d" % self.robot_state )
+            print("RobotVersion %d" % self.robot_version )
     
         if not scp.robot_state:
             print("RobotState is None")
@@ -261,6 +262,8 @@ class URConnection(object):
 
         # Updates the state machine that determines whether we can program the robot.
         rospy.loginfo("RobotMode %d" % state.robot_mode_data.robot_mode)
+        rospy.loginfo("RobotState %d" % self.robot_state)
+        rospy.loginfo("RobotVersion %d" % self.robot_version)
         if self.robot_version == 3:
             can_execute = (state.robot_mode_data.robot_mode in [RobotMode_V30.ROBOT_MODE_RUNNING]) #RobotMode_V30.ROBOT_MODE_IDLE?
         else: # using V18 as default
@@ -268,18 +271,21 @@ class URConnection(object):
         
         if self.robot_state == self.CONNECTED:
             if can_execute:
+                print("CONNECTED, CAN-EXECUTE")
                 self.__trigger_ready_to_program()
                 self.robot_state = self.READY_TO_PROGRAM
-                print("DebugRobotState %d" % self.robot_state )
+            else:
+                print("CONNECTED, NOT CAN-EXECUTE")
         elif self.robot_state == self.READY_TO_PROGRAM:
             if not can_execute:
+                print("READY-TO-PROGRAMM, NOT CAN-EXECUTE")
                 self.robot_state = self.CONNECTED
-                print("DebugRobotState %d" % self.robot_state )
+            else:
+                print("READY-TO-PROGRAMM, CAN-EXECUTE")
         elif self.robot_state == self.EXECUTING:
             if not can_execute:
                 self.__trigger_halted()
                 self.robot_state = self.CONNECTED
-                print("DebugRobotState %d" % self.robot_state )
 
         # Report on any unknown packet types that were received
         if len(state.unknown_ptypes) > 0:
