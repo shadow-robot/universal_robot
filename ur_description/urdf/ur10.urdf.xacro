@@ -42,7 +42,7 @@
 
   <!-- Arbitrary offsets for shoulder/elbow joints -->
   <property name="shoulder_offset" value="0.220941" />  <!-- measured from model -->
-  <property name="elbow_offset" value="-0.1719" /> <!-- measured from model -->       
+  <property name="elbow_offset" value="-0.1719" /> <!-- measured from model -->
 
   <!-- link lengths used in model -->
   <property name="shoulder_height" value="${ur10_d1}" />
@@ -64,16 +64,19 @@
 
 
   <xacro:macro name="ur10_robot" params="prefix joint_limited">
-  
+
     <link name="${prefix}base_link" >
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Base.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Base.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/base.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="0.038" mass="${base_mass}">
@@ -94,16 +97,19 @@
       </xacro:if>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
-    
+
     <link name="${prefix}shoulder_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Shoulder.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Shoulder.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/shoulder.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="0.178" mass="${shoulder_mass}">
@@ -114,7 +120,7 @@
     <joint name="${prefix}shoulder_lift_joint" type="revolute">
       <parent link="${prefix}shoulder_link" />
       <child link = "${prefix}upper_arm_link" />
-      <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />    
+      <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
         <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="330.0" velocity="2.16"/>
@@ -130,10 +136,13 @@
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/UpperArm.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/UpperArm.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/upper_arm.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="${-ur10_a2}" mass="${upper_arm_mass}">
@@ -160,10 +169,13 @@
          <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Forearm.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Forearm.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/forearm.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="${-ur10_a3}" mass="${forearm_mass}">
@@ -190,10 +202,13 @@
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Wrist1.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Wrist1.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/wrist_1.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="0.12" mass="${wrist_1_mass}">
@@ -220,10 +235,13 @@
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Wrist2.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Wrist2.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/wrist_2.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="0.12" mass="${wrist_2_mass}">
@@ -250,27 +268,57 @@
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/Wrist3.dae"/>
         </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://ur_description/meshes/ur10/collision/Wrist3.dae"/>
+          <mesh filename="package://ur_description/meshes/ur10/collision/wrist_3.stl"/>
         </geometry>
       </collision>
       <xacro:cylinder_inertial radius="0.075" length="0.12" mass="${wrist_3_mass}">
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
       </xacro:cylinder_inertial>
     </link>
-    
+
     <joint name="${prefix}ee_fixed_joint" type="fixed">
       <parent link="${prefix}wrist_3_link" />
       <child link = "${prefix}ee_link" />
       <origin xyz="0.0 ${wrist_3_length} 0.0" rpy="0.0 0.0 ${pi/2.0}" />
     </joint>
 
-    <link name="${prefix}ee_link" />
+    <link name="${prefix}ee_link">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+      </collision>
+    </link>
 
     <xacro:ur10_arm_transmission prefix="${prefix}" />
     <xacro:ur10_arm_gazebo prefix="${prefix}" />
-  
+
+    <!-- ROS base_link to UR 'Base' Coordinates transform -->
+    <link name="${prefix}base"/>
+    <joint name="${prefix}base_link-base_fixed_joint" type="fixed">
+      <!-- NOTE: this rotation is only needed as long as base_link itself is
+                 not corrected wrt the real robot (ie: rotated over 180
+                 degrees)
+      -->
+      <origin xyz="0 0 0" rpy="0 0 ${-pi}"/>
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}base"/>
+    </joint>
+
+    <!-- Frame coincident with all-zeros TCP on UR controller -->
+    <link name="${prefix}tool0"/>
+    <joint name="${prefix}wrist_3_link-tool0_fixed_joint" type="fixed">
+      <origin xyz="0 ${wrist_3_length} 0" rpy="${pi/-2.0} 0 0"/>
+      <parent link="${prefix}wrist_3_link"/>
+      <child link="${prefix}tool0"/>
+    </joint>
+
   </xacro:macro>
 </robot>

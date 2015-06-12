@@ -32,10 +32,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Base.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Base.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/base.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -57,10 +60,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Shoulder.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Shoulder.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/shoulder.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -82,10 +88,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/UpperArm.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/UpperArm.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/upper_arm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -107,10 +116,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Forearm.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Forearm.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/forearm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -132,10 +144,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Wrist1.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Wrist1.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/wrist_1.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -157,10 +172,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Wrist2.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Wrist2.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/wrist_2.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -182,10 +200,13 @@
       <geometry>
         <mesh filename="package://ur_description/meshes/ur5/visual/Wrist3.dae"/>
       </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_description/meshes/ur5/collision/Wrist3.dae"/>
+        <mesh filename="package://ur_description/meshes/ur5/collision/wrist_3.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -199,55 +220,84 @@
     <child link="ee_link"/>
     <origin rpy="0.0 0.0 1.570796325" xyz="0.0 0.0823 0.0"/>
   </joint>
-  <link name="ee_link"/>
+  <link name="ee_link">
+    <collision>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+    </collision>
+  </link>
   <transmission name="shoulder_pan_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="shoulder_pan_joint"/>
+    <joint name="shoulder_pan_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="shoulder_pan_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
   <transmission name="shoulder_lift_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="shoulder_lift_joint"/>
+    <joint name="shoulder_lift_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="shoulder_lift_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
   <transmission name="elbow_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="elbow_joint"/>
+    <joint name="elbow_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="elbow_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
   <transmission name="wrist_1_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_1_joint"/>
+    <joint name="wrist_1_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="wrist_1_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
   <transmission name="wrist_2_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_2_joint"/>
+    <joint name="wrist_2_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="wrist_2_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
   <transmission name="wrist_3_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_3_joint"/>
+    <joint name="wrist_3_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
     <actuator name="wrist_3_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+  <link name="base"/>
+  <joint name="base_link-base_fixed_joint" type="fixed">
+    <!-- NOTE: this rotation is only needed as long as base_link itself is
+                 not corrected wrt the real robot (ie: rotated over 180
+                 degrees)
+      -->
+    <origin rpy="0 0 -3.14159265" xyz="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="base"/>
+  </joint>
+  <link name="tool0"/>
+  <joint name="wrist_3_link-tool0_fixed_joint" type="fixed">
+    <origin rpy="-1.570796325 0 0" xyz="0 0.0823 0"/>
+    <parent link="wrist_3_link"/>
+    <child link="tool0"/>
+  </joint>
   <link name="world"/>
   <joint name="world_joint" type="fixed">
     <parent link="world"/>
