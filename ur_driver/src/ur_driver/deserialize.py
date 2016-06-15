@@ -101,6 +101,8 @@ class RobotModeData(object):
             return RobotModeData_V18.unpack(buf)
         elif plen == 38:
             return RobotModeData_V30.unpack(buf)
+        elif plen == 46:
+            return RobotModeData_V32.unpack(buf)
         else:
             print "RobotModeData has wrong length: " + str(plen)
             return rmd
@@ -121,7 +123,7 @@ class RobotModeData_V18(object):
          rmd.speed_fraction) = struct.unpack_from("!IBQ???????Bd", buf)
         return rmd
 
-#this parses RobotModeData for versions >=3.0 (i.e. 3.0)
+#this parses RobotModeData for versions >=3.0 (i.e. 3.0, 3.1)
 class RobotModeData_V30(object):
     __slots__ = ['timestamp', 'robot_connected', 'real_robot_enabled',
                  'power_on_robot', 'emergency_stopped',
@@ -136,6 +138,24 @@ class RobotModeData_V30(object):
          rmd.power_on_robot, rmd.emergency_stopped, rmd.security_stopped,
          rmd.program_running, rmd.program_paused, rmd.robot_mode, rmd.control_mode,
          rmd.target_speed_fraction, rmd.speed_scaling) = struct.unpack_from("!IBQ???????BBdd", buf)
+        return rmd
+
+#this parses RobotModeData for versions >=3.2 (i.e. 3.2)
+class RobotModeData_V32(object):
+    __slots__ = ['timestamp', 'robot_connected', 'real_robot_enabled',
+                 'power_on_robot', 'emergency_stopped',
+                 'security_stopped', 'program_running', 'program_paused',
+                 'robot_mode', 'control_mode', 'target_speed_fraction',
+                 'speed_scaling', 'targetSpeedFractionLimit']
+    @staticmethod
+    def unpack(buf):
+        rmd = RobotModeData_V32()
+        (_, _,
+         rmd.timestamp, rmd.robot_connected, rmd.real_robot_enabled,
+         rmd.power_on_robot, rmd.emergency_stopped, rmd.security_stopped,
+         rmd.program_running, rmd.program_paused, rmd.robot_mode, rmd.control_mode,
+         rmd.target_speed_fraction, rmd.speed_scaling,
+         rmd.targetSpeedFractionLimit) = struct.unpack_from("!IBQ???????BBddd", buf)
         return rmd
 
 #this parses JointData for all versions (i.e. 1.6, 1.7, 1.8, 3.0)
@@ -302,7 +322,7 @@ class AdditionalInfo(object):
         (plen, ptype) = struct.unpack_from("!IB", buf)
         if plen == 10:
             return AdditionalInfoOld.unpack(buf)
-        elif plen == 7:
+        elif plen == 7 or plen == 8:
             return AdditionalInfoNew.unpack(buf)
         else:
             print "AdditionalInfo has wrong length: " + str(plen)
