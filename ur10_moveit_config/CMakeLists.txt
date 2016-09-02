@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ur10_moveit_config)
+project(ur10_moveit)
 
 find_package(catkin REQUIRED)
 
