@@ -1,6 +1,6 @@
 <package>
 
-  <name>ur10_moveit</name>
+  <name>ur10_moveit_config</name>
   <version>0.2.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the ur10 with the MoveIt Motion Planning Framework
