@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(ur_kinematics)
+
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs moveit_core
   moveit_ros_planning pluginlib tf_conversions)
