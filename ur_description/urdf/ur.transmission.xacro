@@ -3,8 +3,8 @@
 
   <xacro:macro name="ur_arm_transmission" params="prefix">
 
-    <transmission name="${prefix}shoulder_pan_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}shoulder_pan_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}shoulder_pan_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
@@ -13,8 +13,8 @@
       </actuator>
     </transmission>
   
-    <transmission name="${prefix}shoulder_lift_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}shoulder_lift_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}shoulder_lift_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
@@ -23,8 +23,8 @@
       </actuator>
     </transmission>
   
-    <transmission name="${prefix}elbow_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}elbow_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}elbow_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
@@ -33,8 +33,8 @@
       </actuator>
     </transmission>
   
-    <transmission name="${prefix}wrist_1_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}wrist_1_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}wrist_1_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
@@ -43,8 +43,8 @@
       </actuator>
     </transmission>
   
-    <transmission name="${prefix}wrist_2_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}wrist_2_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}wrist_2_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
@@ -53,8 +53,8 @@
       </actuator>
     </transmission>
   
-    <transmission name="${prefix}wrist_3_trans">
-      <type>transmission_interface/SimpleTransmission</type>
+    <transmission name="${prefix}wrist_3_trans" type="sr_mechanism_model/NullTransmission">
+      <type>sr_mechanism_model/NullTransmission</type>
       <joint name="${prefix}wrist_3_joint">
         <hardwareInterface>PositionJointInterface</hardwareInterface>
       </joint>
