@@ -9,7 +9,7 @@ RUN apt-get update && \
     wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add - && \
     apt-get update && \
     apt-get remove -y gazebo2 && \
-    apt-get install -y gazebo7 ros-indigo-gazebo7-ros-pkgs ros-indigo-gazebo7-ros-control ros-indigo-controller-manager python-pip && \
+    apt-get install -y gazebo7 ros-indigo-gazebo7-ros-pkgs ros-indigo-gazebo7-ros-control ros-indigo-controller-manager ros-indigo-ros-controllers python-pip && \
     mkdir -p /workspace/src && \
     cd /workspace/ && \
     source /opt/ros/indigo/setup.bash && \
@@ -32,17 +32,7 @@ RUN source /opt/ros/indigo/setup.bash && \
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
     apt-get install -y libjansson-dev nodejs libboost-dev imagemagick libtinyxml-dev mercurial cmake build-essential xvfb
 
-RUN nohup Xvfb :1 -screen 0 1024x768x16 &> xvfb.log &
-
-RUN cd ~ && \
-    hg clone -r gzweb_2.0.0 https://bitbucket.org/osrf/gzweb && \
-    DISPLAY=:1.0 && \
-    export DISPLAY && \
-    source "/workspace/devel/setup.bash" && \
-    source "/usr/share/gazebo-7/setup.sh" && \
-    cd /root/gzweb && \
-    ls && \
-    GAZEBO_MODEL_PATH=/workspace/src/universal_robot:${GAZEBO_MODEL_PATH} ./deploy.sh -m -c -t
+RUN /workspace/src/setup_gzweb.sh
 
 RUN apt-get install -y byobu nano
 
