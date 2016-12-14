@@ -3,12 +3,15 @@
   <arg name="limited" default="false"/>
   <arg name="paused" default="false"/>
   <arg name="gui" default="true"/>
-  
+  <arg name="gzweb" default="false"/>
+  <arg name="verbose" default="false"/>
+
   <!-- startup simulated world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" default="worlds/empty.world"/>
     <arg name="paused" value="$(arg paused)"/>
     <arg name="gui" value="$(arg gui)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
   <!-- send robot urdf to param server -->
@@ -16,8 +19,20 @@
     <arg name="limited" value="$(arg limited)"/>
   </include>
 
-  <!-- push robot_description to factory and spawn robot in gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.1" respawn="false" output="screen" />
+  <group unless="$(arg gzweb)">
+    <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model"
+      args="-urdf -param robot_description -model robot -z 0.1" respawn="false" output="screen" />
+  </group>
+
+  <group if="$(arg gzweb)">
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+      args="-urdf -model ur10 -file /tmp/ur10.gazebo.urdf -package_to_model" respawn="false" output="screen" >
+      <param name="dummy_to_generate_gazebo_urdf_file"
+        command="rosrun xacro xacro.py -o /tmp/ur10.gazebo.urdf '$(find ur_description)/model.urdf'" />
+      <param name="dummy_to_convert_package_to_model"
+        command="sed -i s@package://@model://@g /tmp/ur10.gazebo.urdf" />
+    </node>
+  </group>
 
   <include file="$(find ur_gazebo)/launch/controller_utils.launch"/>
 
