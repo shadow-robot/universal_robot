@@ -29,7 +29,7 @@ RUN source /opt/ros/indigo/setup.bash && \
     catkin build
 
 # installing gzweb
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup | bash - && \
     apt-get install -y libjansson-dev nodejs libboost-dev imagemagick libtinyxml-dev mercurial cmake build-essential xvfb
 
 RUN /workspace/src/setup_gzweb.sh
@@ -44,5 +44,7 @@ COPY ./entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
+
+VOLUME /workspace
 
 EXPOSE 8080 7681

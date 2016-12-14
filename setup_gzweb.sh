@@ -5,9 +5,9 @@ DISPLAY=:1.0
 export DISPLAY
 
 cd /root
-hg clone -r gzweb_2.0.0 https://bitbucket.org/osrf/gzweb
+hg clone -r gzweb_1.3.0 https://bitbucket.org/osrf/gzweb
 source "/workspace/devel/setup.bash"
-source "/usr/share/gazebo-7/setup.sh"
+source "/usr/share/gazebo/setup.sh"
 cd /root
 wget -l 2 -nc -r "http://models.gazebosim.org/" --accept gz
 cd "models.gazebosim.org"
